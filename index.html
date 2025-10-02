@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tokyo Garage • Calculadora RP</title>
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      /* Tema Tailwind com vibe shadcn */
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: [
+                "Inter",
+                "ui-sans-serif",
+                "system-ui",
+                "Segoe UI",
+                "Roboto",
+              ],
+            },
+            colors: {
+              tg: {
+                bg: "#0B0B0D",
+                panel: "#121216",
+                card: "#17171C",
+                soft: "#23232A",
+                ring: "#2B2B33",
+                red: "#D41920",
+                text: "#E8E8F0",
+                dim: "#B9BBC6",
+                green: "#22C55E",
+              },
+            },
+            boxShadow: {
+              card: "0 10px 30px rgba(0,0,0,.45)",
+              ring: "inset 0 0 0 1px #2B2B33",
+              glow: "0 0 0 8px rgba(212,25,32,.12)",
+            },
+            borderRadius: {
+              xl2: "1.25rem",
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* micro detalhes */
+      .card {
+        box-shadow: var(--tw-shadow), var(--tw-ring-offset-shadow, 0 0 #0000),
+          var(--tw-ring-shadow, 0 0 #0000);
+      }
+      .switch input:checked + span {
+        background: #16a34a;
+      }
+      .switch input:checked + span::after {
+        transform: translateX(20px);
+      }
+      .switch span::after {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        background: white;
+        border-radius: 9999px;
+        left: 2px;
+        top: 2px;
+        transition: transform 0.25s;
+      }
+      .scroll-smooth {
+        scroll-behavior: smooth;
+      }
+      .btn {
+        transition: all 0.2s;
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .input {
+        background: #121216;
+        border: 1px solid #2b2b33;
+      }
+      .input:focus {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        border-color: #3b82f6;
+      }
+    </style>
+  </head>
+  <body class="bg-tg-bg text-tg-text min-h-screen scroll-smooth">
+    <header
+      class="sticky top-0 z-40 border-b border-tg.ring/40 bg-gradient-to-b from-tg-panel/95 to-tg-panel/60 backdrop-blur"
+    >
+      <div
+        class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between"
+      >
+        <h1 class="text-2xl font-extrabold tracking-tight">
+          Tokyo Garage • Calculadora
+        </h1>
+        <div class="flex items-center gap-2">
+          <button
+            id="btnReset"
+            class="btn px-4 py-2 rounded-lg bg-tg.soft hover:bg-tg.ring text-sm"
+          >
+            Limpar
+          </button>
+          <button
+            id="btnShare"
+            class="btn px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm"
+          >
+            Copiar resumo
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main
+      class="max-w-6xl mx-auto px-4 py-8 grid gap-6 md:grid-cols-[1fr,380px]"
+    >
+      <!-- Painel opções -->
+      <section
+        class="card rounded-xl2 bg-tg-card shadow-card ring-1 ring-tg-ring p-5 md:p-6"
+      >
+        <div class="flex flex-wrap gap-4 items-end">
+          <div class="grow">
+            <label class="block text-sm text-tg-dim mb-1"
+              >Cliente parceiro</label
+            >
+            <label
+              class="switch relative inline-flex items-center cursor-pointer select-none"
+            >
+              <input id="isPartner" type="checkbox" class="sr-only" />
+              <span
+                class="w-10 h-6 rounded-full bg-gray-600 transition relative"
+              ></span>
+            </label>
+            <span class="ml-3 text-sm">Desconto de 10% no valor final</span>
+          </div>
+          <div>
+            <label for="kmExterno" class="block text-sm text-tg-dim mb-1"
+              >KM rodado para atendimento externo</label
+            >
+            <div class="flex items-center gap-2">
+              <input
+                id="kmExterno"
+                type="number"
+                min="0"
+                step="0.1"
+                value="0"
+                class="input rounded-lg px-3 py-2 w-36 text-right"
+              />
+              <span class="text-sm text-tg-dim">km</span>
+            </div>
+            <p class="text-xs text-tg-dim mt-1">R$ 1.000 por km</p>
+          </div>
+        </div>
+
+        <!-- Categorias -->
+        <div id="categories" class="mt-6 grid gap-5"></div>
+      </section>
+
+      <!-- Resumo -->
+      <aside
+        class="card rounded-xl2 bg-tg-card shadow-card ring-1 ring-tg-ring p-5 md:p-6 h-fit sticky top-20"
+      >
+        <h2 class="text-lg font-bold mb-4">Resumo e total</h2>
+
+        <div
+          id="itemsList"
+          class="space-y-3 max-h-[420px] overflow-auto pr-1"
+        ></div>
+
+        <div class="border-t border-tg-ring mt-4 pt-4 space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span>Subtotal</span><span id="subtotal">R$ 0,00</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Descontos</span><span id="discounts">R$ 0,00</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Atendimento externo</span><span id="extCost">R$ 0,00</span>
+          </div>
+          <div class="flex justify-between font-semibold text-tg-dim">
+            <span>Impostos/Taxas</span><span id="fees">R$ 0,00</span>
+          </div>
+          <div
+            class="flex justify-between items-center text-2xl font-extrabold mt-1"
+          >
+            <span>Total</span
+            ><span id="grandTotal" class="text-tg-green">R$ 0,00</span>
+          </div>
+        </div>
+
+        <div class="mt-5">
+          <label class="block text-sm text-tg-dim mb-1">Observações</label>
+          <textarea
+            id="notes"
+            rows="3"
+            class="input rounded-lg w-full px-3 py-2"
+            placeholder="Ex.: veículo capotado, uso de elevador para desvirar, cliente solicitou neon..."
+          ></textarea>
+        </div>
+
+        <button
+          id="btnCopyInvoice"
+          class="btn w-full mt-4 px-4 py-3 rounded-lg bg-tg-red hover:brightness-110 font-semibold tracking-wide"
+        >
+          Copiar orçamento detalhado
+        </button>
+      </aside>
+    </main>
+
+    <footer
+      class="max-w-6xl mx-auto px-4 pb-10 text-center text-xs text-tg-dim"
+    >
+      Feito para RP de mecânico. Estilo inspirado no shadcn com Tailwind.
+    </footer>
+
+    <script>
+      /* =========================================================
+       CONFIGURAÇÃO • fácil de editar e expandir
+       - type: "toggle" para ligar/desligar
+       - type: "qty" para quantidade
+       - price: valor unitário em BRL
+       - max: limite de venda quando aplicável
+       - groupId: agrupa itens que compartilham o mesmo limite
+    ========================================================== */
+      const CONFIG = {
+        categories: [
+          {
+            id: "reparos",
+            title: "Reparos e Itens de Oficina",
+            items: [
+              {
+                id: "reparo_interno",
+                label: "Reparo interno",
+                type: "toggle",
+                price: 1000,
+              },
+              {
+                id: "kit_basico",
+                label: "Kit reparo básico",
+                type: "qty",
+                price: 1000,
+                max: 10,
+                groupId: "kits",
+              },
+              {
+                id: "kit_avancado",
+                label: "Kit reparo avançado",
+                type: "qty",
+                price: 4500,
+                max: 10,
+                groupId: "kits",
+              },
+              {
+                id: "chave_inglesa",
+                label: "Chave inglesa",
+                type: "qty",
+                price: 1500,
+              },
+              {
+                id: "elevador_hidraulico",
+                label: "Elevador hidráulico para desvirar",
+                type: "toggle",
+                price: 3000,
+              },
+              { 
+                id: "pneu", 
+                label: "Pneu", 
+                type: "qty", 
+                price: 500, 
+                max: 15,
+              },
+              {
+                id: "rastreador",
+                label: "Rastreador",
+                type: "qty",
+                price: 10000,
+              },
+              {
+                id: "nitro",
+                label: "Nitro",
+                type: "qty",
+                price: 17000,
+                max: 3,
+              },
+            ],
+          },
+          {
+            id: "remap",
+            title: "Itens de Remap",
+            items: [
+              {
+                id: "laptop",
+                label: "Laptop",
+                type: "qty",
+                price: 10000,
+                max: 3,
+              },
+              {
+                id: "suspensao",
+                label: "Suspensão",
+                type: "qty",
+                price: 70000,
+                max: 3,
+              },
+              {
+                id: "kit_xenon",
+                label: "Kit Xenon",
+                type: "qty",
+                price: 60000,
+                max: 3,
+              },
+              {
+                id: "kit_neon",
+                label: "Kit Neon",
+                type: "qty",
+                price: 70000,
+                max: 3,
+              },
+              {
+                id: "purgador",
+                label: "Purgador",
+                type: "qty",
+                price: 55000,
+                max: 3,
+              },
+              { 
+                id: "westgate", 
+                label: "WestGate", 
+                type: "qty", 
+                price: 70000, 
+                max: 3,
+              },
+              {
+                id: "difusor",
+                label: "Difusor",
+                type: "qty",
+                price: 70000,
+              },
+            ],
+          },
+          {
+            id: "custom",
+            title: "Customização",
+            twoCols: true,
+            items: [
+              {
+                id: "pintura_prima",
+                label: "Pintura primária",
+                type: "toggle",
+                price: 5000,
+              },
+              {
+                id: "pintura_secundaria",
+                label: "Pintura secundária",
+                type: "toggle",
+                price: 5000,
+              },
+              {
+                id: "perolado",
+                label: "Perolado",
+                type: "toggle",
+                price: 5000,
+              },
+              {
+                id: "adesivo",
+                label: "Adesivo",
+                type: "toggle",
+                price: 3000,
+              },
+              {
+                id: "para_dianteiro",
+                label: "Parachoque dianteiro",
+                type: "toggle",
+                price: 3000,
+              },
+              {
+                id: "para_traseiro",
+                label: "Parachoque traseiro",
+                type: "toggle",
+                price: 3000,
+              },
+              {
+                id: "saia_lateral",
+                label: "Saia lateral",
+                type: "toggle",
+                price: 3000,
+              },
+              { id: "capo", label: "Capô", type: "toggle", price: 3000 },
+              { id: "teto", label: "Teto", type: "toggle", price: 3000 },
+              {
+                id: "escapamento",
+                label: "Escapamento",
+                type: "toggle",
+                price: 3000,
+              },
+              {
+                id: "para_lama",
+                label: "Para-lama",
+                type: "toggle",
+                price: 3000,
+              },
+              { id: "vidro", label: "Vidro", type: "toggle", price: 3000 },
+              {
+                id: "aerofolio",
+                label: "Aerofólio",
+                type: "toggle",
+                price: 3000,
+              },
+              {
+                id: "chassi_gaiola",
+                label: "Chassi Gaiola",
+                type: "toggle",
+                price: 3000,
+              },
+              {
+                id: "chassi_grade",
+                label: "Chassi Grade",
+                type: "toggle",
+                price: 3000,
+              },
+              { id: "buzina", label: "Buzina", type: "toggle", price: 3000 },
+              { id: "rodas", label: "Rodas", type: "toggle", price: 3000 },
+              {
+                id: "cor_roda",
+                label: "Cor da roda",
+                type: "toggle",
+                price: 3000,
+              },
+              {
+                id: "fumaca_pneu",
+                label: "Fumaça do pneu",
+                type: "toggle",
+                price: 3000,
+              },
+              {
+                id: "faixa_pneu",
+                label: "Faixa pneu",
+                type: "toggle",
+                price: 3000,
+              },
+              { id: "placa", label: "Placa", type: "toggle", price: 3000 },
+              { id: "farol", label: "Farol", type: "toggle", price: 3000 },
+              { id: "neon", label: "Neon", type: "toggle", price: 3000 },
+              {
+                id: "acessorios_interior",
+                label: "Acessórios do interior (cada)",
+                type: "qty",
+                price: 3000,
+              },
+              { id: "extras", label: "Extras", type: "qty", price: 5000 },
+            ],
+          },
+        ],
+        // preço por quilômetro do atendimento externo
+        externoKmPrice: 1000,
+        // desconto para parceiros
+        partnerDiscount: 0.1,
+        // espaço para taxas adicionais se quiser no futuro
+        feesPercent: 0,
+      };
+
+      /* =========================================================
+       UTIL
+    ========================================================== */
+      const BRL = new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      });
+      const $ = (sel, el = document) => el.querySelector(sel);
+      const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
+
+      /* =========================================================
+       RENDERIZAÇÃO DAS CATEGORIAS
+    ========================================================== */
+      const catWrap = document.getElementById("categories");
+
+      function renderCategories() {
+        catWrap.innerHTML = "";
+        CONFIG.categories.forEach((cat) => {
+          const card = document.createElement("div");
+          card.className =
+            "rounded-xl2 bg-tg-panel ring-1 ring-tg-ring p-4 md:p-5";
+
+          const head = `
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-base md:text-lg font-semibold">${cat.title}</h3>
+              ${
+                cat.help
+                  ? `<p class="text-xs text-tg-dim mt-1">${cat.help}</p>`
+                  : ""
+              }
+            </div>
+          </div>
+        `;
+
+          const gridCls = cat.twoCols
+            ? "grid md:grid-cols-2 gap-4 mt-4"
+            : "grid gap-4 mt-4";
+          const list = document.createElement("div");
+          list.className = gridCls;
+
+          cat.items.forEach((item) => {
+            const row = document.createElement("div");
+            row.className =
+              "flex items-center justify-between gap-3 rounded-lg bg-tg.soft ring-1 ring-tg-ring px-3 py-3";
+            row.dataset.itemId = item.id;
+            let control = "";
+
+            if (item.type === "toggle") {
+              control = `
+              <label class="switch relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" data-type="toggle" class="sr-only" />
+                <span class="w-10 h-6 rounded-full bg-gray-600 transition relative"></span>
+              </label>
+            `;
+            } else {
+              control = `
+              <div class="flex items-center gap-2">
+                <button type="button" class="dec px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-sm">−</button>
+                <input type="number" min="0" step="1" value="0" class="qty input rounded w-16 px-2 py-1 text-right" data-type="qty" />
+                <button type="button" class="inc px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-sm">+</button>
+              </div>
+            `;
+            }
+
+            row.innerHTML = `
+            <div class="min-w-0">
+              <div class="font-medium leading-tight">${item.label}</div>
+              <div class="text-xs text-tg-dim">${BRL.format(item.price)}${
+              item.max ? ` • limite ${item.max}` : ""
+            }</div>
+            </div>
+            <div class="shrink-0 flex items-center gap-3">
+              ${control}
+            </div>
+          `;
+
+            list.appendChild(row);
+          });
+
+          card.innerHTML = head;
+          card.appendChild(list);
+          catWrap.appendChild(card);
+        });
+      }
+
+      renderCategories();
+
+      /* =========================================================
+       ESTADO
+    ========================================================== */
+      const state = {
+        isPartner: false,
+        km: 0,
+        selections: {}, // id -> qty
+      };
+
+      /* =========================================================
+       VINCULA EVENTOS
+    ========================================================== */
+      // Parceiro
+      $("#isPartner").addEventListener("change", (e) => {
+        state.isPartner = e.target.checked;
+        calcAndRender();
+      });
+
+      // KM externo
+      $("#kmExterno").addEventListener("input", (e) => {
+        const v = parseFloat(e.target.value || "0");
+        state.km = Math.max(0, v);
+        calcAndRender();
+      });
+
+      // Clicks nos itens
+      $("#categories").addEventListener("click", (e) => {
+        const row = e.target.closest("[data-item-id]");
+        if (!row) return;
+        const itemId = row.dataset.itemId;
+        const item = findItem(itemId);
+        if (!item) return;
+
+        if (e.target.classList.contains("inc")) {
+          changeQty(item, 1, row);
+        } else if (e.target.classList.contains("dec")) {
+          changeQty(item, -1, row);
+        }
+      });
+
+      // Mudanças diretas no input number
+      $("#categories").addEventListener("input", (e) => {
+        const row = e.target.closest("[data-item-id]");
+        if (!row) return;
+        const itemId = row.dataset.itemId;
+        const item = findItem(itemId);
+        if (!item) return;
+
+        const type = e.target.dataset.type;
+        if (type === "qty") {
+          const val = Math.max(0, parseInt(e.target.value || "0", 10));
+          setQty(item, val, row);
+        }
+      });
+
+      // Toggle
+      $("#categories").addEventListener("change", (e) => {
+        const row = e.target.closest("[data-item-id]");
+        if (!row) return;
+        const itemId = row.dataset.itemId;
+        const item = findItem(itemId);
+        if (!item) return;
+
+        if (e.target.type === "checkbox") {
+          state.selections[itemId] = e.target.checked ? 1 : 0;
+          calcAndRender();
+        }
+      });
+
+      // Reset
+      $("#btnReset").addEventListener("click", () => {
+        $("#isPartner").checked = false;
+        state.isPartner = false;
+        $("#kmExterno").value = 0;
+        state.km = 0;
+        state.selections = {};
+        // zera todos os campos
+        $$("#categories [data-item-id]").forEach((row) => {
+          const cb = row.querySelector('input[type="checkbox"]');
+          if (cb) cb.checked = false;
+          const qty = row.querySelector("input.qty");
+          if (qty) qty.value = 0;
+        });
+        calcAndRender();
+      });
+
+      // Copiar resumo rápido
+      $("#btnShare").addEventListener("click", () =>
+        copyToClipboard(makeShortSummary())
+      );
+
+      // Copiar orçamento detalhado
+      $("#btnCopyInvoice").addEventListener("click", () =>
+        copyToClipboard(makeDetailedInvoice())
+      );
+
+      /* =========================================================
+       LÓGICA DE LIMITES E CÁLCULO
+    ========================================================== */
+      function findItem(id) {
+        for (const c of CONFIG.categories) {
+          const found = c.items.find((i) => i.id === id);
+          if (found) return found;
+        }
+        return null;
+      }
+
+      function getGroupTotal(groupId) {
+        if (!groupId) return 0;
+        let total = 0;
+        for (const id in state.selections) {
+          const item = findItem(id);
+          if (item && item.groupId === groupId)
+            total += state.selections[id] || 0;
+        }
+        return total;
+      }
+
+      function setQty(item, newQty, rowEl) {
+        // aplica limite do próprio item
+        if (item.max != null) newQty = Math.min(newQty, item.max);
+        // aplica limite por grupo combinado
+        if (item.groupId) {
+          const currentGroup =
+            getGroupTotal(item.groupId) - (state.selections[item.id] || 0);
+          const leftover = (item.max ?? Infinity) + (item.groupMax ?? 0); // item.max já limita por item
+          const groupLimit = 3; // regra do card: Kit = 3 unidades combinadas
+          const cap = Math.max(0, groupLimit - currentGroup);
+          newQty = Math.min(newQty, cap);
+        }
+
+        state.selections[item.id] = newQty;
+        const qtyInput = rowEl.querySelector("input.qty");
+        if (qtyInput) qtyInput.value = newQty;
+        calcAndRender();
+      }
+
+      function changeQty(item, delta, rowEl) {
+        const current = state.selections[item.id] || 0;
+        setQty(item, Math.max(0, current + delta), rowEl);
+      }
+
+      function calcAndRender() {
+        const items = [];
+        let subtotal = 0;
+
+        CONFIG.categories.forEach((cat) => {
+          cat.items.forEach((it) => {
+            const qty = state.selections[it.id] || 0;
+            if (it.type === "toggle" && qty === 1) {
+              items.push({
+                label: it.label,
+                qty: 1,
+                price: it.price,
+                total: it.price,
+              });
+              subtotal += it.price;
+            }
+            if (it.type === "qty" && qty > 0) {
+              const total = qty * it.price;
+              items.push({ label: it.label, qty, price: it.price, total });
+              subtotal += total;
+            }
+          });
+        });
+
+        // Atendimento externo
+        const ext = Math.max(0, state.km) * CONFIG.externoKmPrice;
+
+        // Desconto parceiro
+        const discount = state.isPartner
+          ? (subtotal + ext) * CONFIG.partnerDiscount
+          : 0;
+
+        // Taxas
+        const fees = (subtotal + ext - discount) * (CONFIG.feesPercent || 0);
+
+        const grand = Math.max(0, subtotal + ext - discount + fees);
+
+        renderItems(items);
+        $("#subtotal").textContent = BRL.format(subtotal);
+        $("#extCost").textContent = BRL.format(ext);
+        $("#discounts").textContent = BRL.format(discount);
+        $("#fees").textContent = BRL.format(fees);
+        $("#grandTotal").textContent = BRL.format(grand);
+      }
+
+      function renderItems(items) {
+        const wrap = document.getElementById("itemsList");
+        if (!items.length) {
+          wrap.innerHTML = `<p class="text-sm text-tg-dim">Nenhum item selecionado.</p>`;
+          return;
+        }
+        wrap.innerHTML = items
+          .map(
+            (i) => `
+        <div class="flex items-center justify-between gap-3 bg-tg.soft ring-1 ring-tg-ring rounded-lg px-3 py-2">
+          <div class="text-sm">
+            <div class="font-medium">${i.label}</div>
+            <div class="text-xs text-tg-dim">Qtd ${i.qty} • ${BRL.format(
+              i.price
+            )} un.</div>
+          </div>
+          <div class="text-sm font-semibold">${BRL.format(i.total)}</div>
+        </div>
+      `
+          )
+          .join("");
+      }
+
+      /* =========================================================
+       EXPORTAÇÃO DOS DADOS
+    ========================================================== */
+      function makeShortSummary() {
+        const total = $("#grandTotal").textContent;
+        const partner = state.isPartner ? "Sim" : "Não";
+        return [
+          `Orçamento Tokyo Garage`,
+          `Parceiro: ${partner}`,
+          `KM externo: ${state.km || 0} km`,
+          `Total: ${total}`,
+        ].join("\n");
+      }
+
+      function makeDetailedInvoice() {
+        const lines = [];
+        lines.push("ORÇAMENTO • TOKYO GARAGE");
+        lines.push("");
+
+        CONFIG.categories.forEach((cat) => {
+          const catLines = [];
+          cat.items.forEach((it) => {
+            const qty = state.selections[it.id] || 0;
+            if (
+              (it.type === "toggle" && qty) ||
+              (it.type === "qty" && qty > 0)
+            ) {
+              const total = it.type === "toggle" ? it.price : qty * it.price;
+              catLines.push(
+                `- ${it.label} ${
+                  it.type === "qty" ? `(x${qty})` : ""
+                } = ${BRL.format(total)}`
+              );
+            }
+          });
+          if (catLines.length) {
+            lines.push(cat.title.toUpperCase());
+            lines.push(...catLines);
+            lines.push("");
+          }
+        });
+
+        if (state.km > 0) {
+          lines.push(
+            `ATENDIMENTO EXTERNO: ${state.km} km x ${BRL.format(
+              CONFIG.externoKmPrice
+            )} = ${BRL.format(state.km * CONFIG.externoKmPrice)}`
+          );
+          lines.push("");
+        }
+
+        const subtotal = $("#subtotal").textContent;
+        const ext = $("#extCost").textContent;
+        const discounts = $("#discounts").textContent;
+        const fees = $("#fees").textContent;
+        const total = $("#grandTotal").textContent;
+
+        lines.push(`SUBTOTAL: ${subtotal}`);
+        lines.push(`ATENDIMENTO EXTERNO: ${ext}`);
+        lines.push(`DESCONTOS: ${discounts}`);
+        if (CONFIG.feesPercent) lines.push(`TAXAS: ${fees}`);
+        lines.push(`TOTAL: ${total}`);
+        lines.push("");
+
+        const notes = $("#notes").value.trim();
+        if (notes) {
+          lines.push("OBSERVAÇÕES:");
+          lines.push(notes);
+        }
+
+        return lines.join("\n");
+      }
+
+      async function copyToClipboard(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          toast("Copiado para a área de transferência");
+        } catch {
+          alert("Não foi possível copiar. Selecione e copie manualmente.");
+        }
+      }
+
+      // mini toast
+      function toast(msg) {
+        const t = document.createElement("div");
+        t.textContent = msg;
+        t.className =
+          "fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/10 text-white px-4 py-2 rounded-lg ring-1 ring-tg-ring shadow-glow";
+        document.body.appendChild(t);
+        setTimeout(() => {
+          t.remove();
+        }, 1800);
+      }
+
+      // inicia
+      calcAndRender();
+    </script>
+  </body>
+</html>
