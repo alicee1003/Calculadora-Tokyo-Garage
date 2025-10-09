@@ -732,7 +732,7 @@
           : 0;
 
         // Taxas
-       // const fees = (subtotal + ext - discount) * (CONFIG.feesPercent || 0);
+        const fees = (subtotal + ext - discount) * (CONFIG.feesPercent || 0);
 
         const grand = Math.max(0, subtotal + ext - discount + fees);
 
