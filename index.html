@@ -187,9 +187,9 @@
           <div class="flex justify-between">
             <span>Atendimento externo</span><span id="extCost">R$ 0,00</span>
           </div>
-          <div class="flex justify-between font-semibold text-tg-dim">
+         <!--  <div class="flex justify-between font-semibold text-tg-dim">
             <span>Impostos/Taxas</span><span id="fees">R$ 0,00</span>
-          </div>
+          </div> -->
           <div
             class="flex justify-between items-center text-2xl font-extrabold mt-1"
           >
@@ -732,7 +732,7 @@
           : 0;
 
         // Taxas
-        const fees = (subtotal + ext - discount) * (CONFIG.feesPercent || 0);
+       // const fees = (subtotal + ext - discount) * (CONFIG.feesPercent || 0);
 
         const grand = Math.max(0, subtotal + ext - discount + fees);
 
@@ -740,7 +740,7 @@
         $("#subtotal").textContent = BRL.format(subtotal);
         $("#extCost").textContent = BRL.format(ext);
        // $("#discounts").textContent = BRL.format(discount);
-        $("#fees").textContent = BRL.format(fees);
+       // $("#fees").textContent = BRL.format(fees);
         $("#grandTotal").textContent = BRL.format(grand);
       }
 
@@ -821,7 +821,7 @@
         const subtotal = $("#subtotal").textContent;
         const ext = $("#extCost").textContent;
         //const discounts = $("#discounts").textContent;
-        const fees = $("#fees").textContent;
+        //const fees = $("#fees").textContent;
         const total = $("#grandTotal").textContent;
 
         lines.push(`SUBTOTAL: ${subtotal}`);
