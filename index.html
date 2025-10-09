@@ -739,7 +739,7 @@
         renderItems(items);
         $("#subtotal").textContent = BRL.format(subtotal);
         $("#extCost").textContent = BRL.format(ext);
-        $("#discounts").textContent = BRL.format(discount);
+       // $("#discounts").textContent = BRL.format(discount);
         $("#fees").textContent = BRL.format(fees);
         $("#grandTotal").textContent = BRL.format(grand);
       }
@@ -820,13 +820,13 @@
 
         const subtotal = $("#subtotal").textContent;
         const ext = $("#extCost").textContent;
-        const discounts = $("#discounts").textContent;
+        //const discounts = $("#discounts").textContent;
         const fees = $("#fees").textContent;
         const total = $("#grandTotal").textContent;
 
         lines.push(`SUBTOTAL: ${subtotal}`);
         lines.push(`ATENDIMENTO EXTERNO: ${ext}`);
-        lines.push(`DESCONTOS: ${discounts}`);
+        // lines.push(`DESCONTOS: ${discounts}`);
         if (CONFIG.feesPercent) lines.push(`TAXAS: ${fees}`);
         lines.push(`TOTAL: ${total}`);
         lines.push("");
