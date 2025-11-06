@@ -715,7 +715,7 @@
           const currentGroup =
             getGroupTotal(item.groupId) - (state.selections[item.id] || 0);
           const leftover = (item.max ?? Infinity) + (item.groupMax ?? 0); // item.max já limita por item
-          const groupLimit = 3; // regra do card: Kit = 3 unidades combinadas
+          const groupLimit = 10; // regra do card: Kit = 3 unidades combinadas
           const cap = Math.max(0, groupLimit - currentGroup);
           newQty = Math.min(newQty, cap);
         }
